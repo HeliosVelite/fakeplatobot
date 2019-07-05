@@ -1,0 +1,11 @@
+{
+  "name": "ranking-bot",
+  "version": "1.0.0",
+  "description": "un bot per gestire il sistema di punti su pokemon next",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "HeliosVelite",
+  "license": "ISC"
+}
