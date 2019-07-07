@@ -67,6 +67,7 @@ module.exports = {
 					return message.guild.roles.find(curGuildRole => curGuildRole.name === curRole);
 				});
 				const role = message.guild.roles.find(curRole => curRole.name === newRole);
+				// da usare await poi
 				message.guild.fetchMember(memberId).then(member => {
 					member.removeRoles(roles).then(()=>{
 						member.addRole(role);
@@ -74,7 +75,10 @@ module.exports = {
 							member.addRole(message.guild.roles.find(curRole => curRole.name === 'Campione'));
 						}
 					});
-				}).catch(err => console.log(err));
+				}).catch(err => {
+					console.log(err);
+					delete usersDatabase[memberId];
+				});
 			}
 
 			fs.readFile(__dirname + '/data/info.json', 'utf8', (err, infoJsonString) => {
