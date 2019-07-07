@@ -14,27 +14,21 @@ function newUserTemplate() {
 }
 
 module.exports = {
-	name: 'set',
-	description: 'Imposta il punteggio degli utenti menzionati al valore specificato.',
+	name: 'infraction',
+	description: 'Segnala una infrazione da parte degli utenti menzionati.',
 	// permessi necessari a utilizzare il comando
 	accepted_roles: ['moderatore', 'admin'],
-	usage: '[utenti] ? [punteggio]',
+	usage: '[utenti]',
 	execute(message) {
 		// array che immagazzina gli utenti menzionati
 		let mentionedMembers = [];
-		// gets the rating from the message content
-		let newRating = parseInt(message.content.split('?').pop());
 		// checks if the syntax is correct
-		if(message.mentions.members.size === 0 || isNaN(newRating)) {
+		if(message.mentions.members.size === 0) {
 			message.channel.send('Sintassi invalida, prova così: \n' + prefix + this.name + ' ' + this.usage);
 			return null;
 		}
 		else {
 			mentionedMembers = message.mentions.members.map(curMember => curMember.id);
-		}
-		// checks if the new rating is at least at the min, if not sets it
-		if(newRating < baseRating) {
-			newRating = baseRating;
 		}
 		// asynchronusly gets the usersDatabase
 		fs.readFile(__dirname + '/data/users.json', 'utf8', (err, jsonString) => {
@@ -62,7 +56,7 @@ module.exports = {
 					usersDatabase[memberId].history.push(tourHistory[tourHistory.length - 1]);
 				}
 				// sets the new rating
-				usersDatabase[memberId].rating = newRating;
+				usersDatabase[memberId].infractions += 1;
 			});
 			// updates the users file
 			fs.writeFile(__dirname + '/data/users.json', JSON.stringify(usersDatabase), err => {
@@ -71,9 +65,9 @@ module.exports = {
 					throw err;
 				}
 				else {
-					message.channel.send('Nuovo punteggio per ' + mentionedMembers.map(curId => {
+					message.channel.send('Infrazione da parte di ' + mentionedMembers.map(curId => {
 						return '<@' + curId + '>';
-					}).join(', ') + ' : ' + newRating);
+					}).join(', '));
 				}
 			});
 		});

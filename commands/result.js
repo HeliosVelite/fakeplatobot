@@ -21,8 +21,8 @@ const calcK = elo =>{
 function newUserTemplate() {
 	return {
 		rating: baseRating,
+		infractions: 0,
 		firstPlaces: [],
-		// add to the history the current tournament
 		history: [],
 	};
 }
@@ -44,20 +44,25 @@ function calcNewRating(winnerRating, loserRating) {
 
 module.exports = {
 	name: 'result',
-	description: 'Result!',
+	description: 'Riporta il risultato di un match.',
+	// permessi necessari a utilizzare il comando
 	accepted_roles: ['moderatore', 'admin'],
-	usage: '[utente1] vince contro [utente2]',
+	usage: '[utente1] vince contro [utente2] -infraction (opzionale, da usare solo in caso di vittoria per inattività)',
 	execute(message, args) {
-		// array che immagazzina gli utenti menzionati
-		let mentionedMembers = [];
 
+		// synchronusly retrieve the tourHistory array from the info file
 		const tourHistory = JSON.parse(fs.readFileSync(__dirname + '/data/info.json', 'utf8')).tourHistory;
 
+		// array containing the mentioned users
+		let mentionedMembers = [];
+
+		// checks if there are exactly two users mentioned, if not return a syntax error
 		if(message.mentions.members.size !== 2) {
 			message.channel.send('Sintassi invalida, prova così: \n' + prefix + this.name + ' ' + this.usage);
 			return null;
 		}
 		else {
+			// gets the id from argument
 			mentionedMembers = args.map(curString => {
 				curString = curString.trim();
 				if(curString.search(/<@\d+>/) === 0) {
@@ -66,8 +71,10 @@ module.exports = {
 			}).filter(curMember => curMember !== undefined);
 		}
 
-		const [winnerId, loserId] = mentionedMembers;
+		const infraction = message.content.includes('-infraction');
 
+		const [winnerId, loserId] = mentionedMembers;
+		// asynchronusly gets the usersDatabase
 		fs.readFile(__dirname + '/data/users.json', 'utf8', (err, jsonString) => {
 			if (err) {
 				message.reply('Si è verificato un errore (006)');
@@ -95,12 +102,17 @@ module.exports = {
 				}
 			});
 
-			const [winnerRatingBefore, loserRatingBefore] = [usersDatabase[winnerId].rating, usersDatabase[loserId].rating];
+			// checks if infraction is true
+			if(infraction) {
+				usersDatabase[loserId].infractions += 1;
+			}
 
+			const [winnerRatingBefore, loserRatingBefore] = [usersDatabase[winnerId].rating, usersDatabase[loserId].rating];
+			// call the function used to calc the new rating
 			const [winnerRatingFinal, loserRatingFinal] = calcNewRating(winnerRatingBefore, loserRatingBefore);
 			usersDatabase[winnerId].rating = winnerRatingFinal;
 			usersDatabase[loserId].rating = loserRatingFinal;
-
+			// update the users file
 			fs.writeFile(__dirname + '/data/users.json', JSON.stringify(usersDatabase), err => {
 				if (err) {
 					message.reply('Si è verificato un errore (002)');
@@ -109,7 +121,7 @@ module.exports = {
 				else {
 					const winnerDelta = winnerRatingFinal - winnerRatingBefore;
 					const loserDelta = loserRatingBefore - loserRatingFinal;
-					message.channel.send('Punteggi aggiornati: <@' + winnerId + '>: ' + winnerRatingFinal + ' *(+' + winnerDelta + ')* ' + ' <@' + loserId + '>: ' + loserRatingFinal + ' *(-' + loserDelta + ')*');
+					message.channel.send('Punteggi aggiornati: <@' + winnerId + '>: ' + winnerRatingFinal + ' *(+' + winnerDelta + ')* ' + ' <@' + loserId + '>: ' + loserRatingFinal + ' *(-' + loserDelta + ')*' + (infraction ? ' (infrazione)' : ''));
 				}
 			});
 		});

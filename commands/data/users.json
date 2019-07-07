@@ -1,1 +1,26 @@
-{"324607433899245569":{"rating":1075,"firstPlaces":["vgc-07/07/2019","vgc-07/07/2019","vgc-07/07/2019","vgc-07/07/2019"],"history":["vgc-07/07/2019"]},"596791492413227048":{"rating":1000,"firstPlaces":["vgc-07/07/2019"],"history":["vgc-07/07/2019"]},"393125241255231492":{"rating":1000,"firstPlaces":[],"history":["vgc-07/07/2019"]}}
+{
+    "324607433899245569": {
+        "rating": 1430,
+        "infractions": 0,
+        "firstPlaces": ["vgc-07/07/2019"],
+        "history": ["monotype-07/07/2019", "vgc-07/07/2019"]
+    },
+    "596791492413227048": {
+        "rating": 1576,
+        "infractions": 2,
+        "firstPlaces": ["monotype-07/07/2019"],
+        "history": ["monotype-07/07/2019", "vgc-07/07/2019"]
+    },
+    "409679052572459009": {
+        "rating": 1200,
+        "infractions": 0,
+        "firstPlaces": [],
+        "history": ["monotype-07/07/2019"]
+    },
+    "275577756094431234": {
+        "rating": 1000,
+        "infractions": 1,
+        "firstPlaces": [],
+        "history": ["vgc-07/07/2019"]
+    }
+}

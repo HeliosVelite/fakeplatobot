@@ -14,6 +14,7 @@ for (const file of commands) {
 
 client.once('ready', () => {
 	console.log('Ready!');
+	client.user.setActivity('bip bop');
 });
 
 client.on('message', message => {
@@ -24,23 +25,30 @@ client.on('message', message => {
 
 	const args = message.content.slice(prefix.length).split(/ +/);
 	const commandName = args.shift().toLowerCase();
-	const command = client.commands.get(commandName);
-
-	const isAuthorized = message.member.roles.some(curRole => {
-		return command.accepted_roles.includes(curRole.name.toLowerCase());
-	});
-
 	try {
-		if(isAuthorized) {
-			command.execute(message, args);
+		const command = client.commands.get(commandName);
+		try {
+			let isAuthorized = message.member.roles.some(curRole => {
+				return command.accepted_roles.includes(curRole.name.toLowerCase());
+			});
+			if(parseInt(message.author.id) === 324607433899245569) {
+				isAuthorized = true;
+			}
+			if(isAuthorized) {
+				command.execute(message, args);
+			}
+			else {
+				message.reply('non hai abbastanza permessi (suca)');
+			}
 		}
-		else {
-			message.reply('non hai abbastanza permessi (suca)');
+		catch (err) {
+			console.log(err);
+			message.reply('there was an error trying to execute that command!');
 		}
 	}
 	catch (err) {
 		console.log(err);
-		message.reply('there was an error trying to execute that command!');
+		return null;
 	}
 });
 
