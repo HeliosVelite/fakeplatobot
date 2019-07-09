@@ -3,9 +3,9 @@ const { prefix } = require('../config.json');
 
 module.exports = {
 	name: 'end',
-	description: 'Da usare alla fine del torneo, aggiorna le targhette e la ladder(WIP).',
+	description: 'Da usare alla fine del torneo, aggiorna le targhette e la ladder.',
 	// permessi necessari a usare il comando
-	accepted_roles: ['moderatore', 'admin'],
+	accepted_roles: ['moderatori', 'testmod', 'admin'],
 	usage: '[campione]',
 	execute(message) {
 		// synchronusly gets the tourHistory array
@@ -79,11 +79,23 @@ module.exports = {
 				else if(usersDatabase[memberId].rating < 1600) {
 					newRole = 'Rubino';
 				}
-				else {
+				else if(usersDatabase[memberId].rating < 1700) {
 					newRole = 'Smeraldo';
 				}
+				else if(usersDatabase[memberId].rating < 1800) {
+					newRole = 'Argento';
+				}
+				else if(usersDatabase[memberId].rating < 1900) {
+					newRole = 'Oro';
+				}
+				else if(usersDatabase[memberId].rating < 2000) {
+					newRole = 'Platino';
+				}
+				else {
+					newRole = 'Diamante';
+				}
 				// get the rolesObjects from the guild object
-				const rolesObjectsArr = ['Cristallo', 'Ambra', 'Ametista', 'Topazio', 'Zaffiro', 'Rubino', 'Smeraldo', 'Campione'].map(curRole => {
+				const rolesObjectsArr = ['Cristallo', 'Ambra', 'Ametista', 'Topazio', 'Zaffiro', 'Rubino', 'Smeraldo', 'Argento', 'Oro', 'Platino', 'Diamante', 'Campione'].map(curRole => {
 					return message.guild.roles.find(curGuildRole => curGuildRole.name === curRole);
 				});
 				// get the roleObject to assign

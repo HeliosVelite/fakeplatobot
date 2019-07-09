@@ -4,7 +4,7 @@ const { prefix } = require('../config.json');
 module.exports = {
 	name: 'start',
 	description: 'Da usare nel momento di inizio di un torneo, lo aggiunge alla lista dei tornei creati.',
-	accepted_roles: ['moderatore', 'admin'],
+	accepted_roles: ['moderatori', 'testmod', 'admin'],
 	usage: '[nome del torneo]',
 	execute(message, args) {
 		// checks if the syntax is correct, if not gives a warning
@@ -34,7 +34,7 @@ module.exports = {
 			const mm = String(date.getMonth() + 1).padStart(2, '0');
 			const yyyy = date.getFullYear();
 
-			const newTourId = args[0] + '-' + mm + '/' + dd + '/' + yyyy;
+			const newTourId = args.join(' ') + ' - ' + mm + '/' + dd + '/' + yyyy;
 			// checks if this tournament already exists
 			if(!(infoDatabase.tourHistory.includes(newTourId))) {
 				infoDatabase.tourHistory.push(newTourId);

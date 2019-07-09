@@ -17,7 +17,7 @@ module.exports = {
 	name: 'infraction',
 	description: 'Segnala una infrazione da parte degli utenti menzionati.',
 	// permessi necessari a utilizzare il comando
-	accepted_roles: ['moderatore', 'admin'],
+	accepted_roles: ['moderatori', 'testmod', 'admin'],
 	usage: '[utenti]',
 	execute(message) {
 		// array che immagazzina gli utenti menzionati

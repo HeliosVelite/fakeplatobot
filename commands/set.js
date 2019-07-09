@@ -17,7 +17,7 @@ module.exports = {
 	name: 'set',
 	description: 'Imposta il punteggio degli utenti menzionati al valore specificato.',
 	// permessi necessari a utilizzare il comando
-	accepted_roles: ['moderatore', 'admin'],
+	accepted_roles: ['moderatori', 'testmod', 'admin'],
 	usage: '[utenti] ? [punteggio]',
 	execute(message) {
 		// array che immagazzina gli utenti menzionati

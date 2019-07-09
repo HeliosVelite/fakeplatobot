@@ -32,7 +32,7 @@ function calcNewRating(winnerRating, loserRating) {
 	const P_winner = (1.0 / (1.0 + Math.pow(10, ((loserRating - winnerRating) / 400))));
 	const P_loser = (1.0 / (1.0 + Math.pow(10, ((winnerRating - loserRating) / 400))));
 
-	const newWinnerRating = winnerRating + (calcK(winnerRating) * (1 - P_winner));
+	const newWinnerRating = winnerRating + (calcK(winnerRating) * (1 - P_winner)) + 2;
 	let newLoserRating = loserRating + (calcK(loserRating) * (0 - P_loser));
 
 	if(newLoserRating < baseRating) {
@@ -46,34 +46,32 @@ module.exports = {
 	name: 'result',
 	description: 'Riporta il risultato di un match.',
 	// permessi necessari a utilizzare il comando
-	accepted_roles: ['moderatore', 'admin'],
-	usage: '[utente1] vince contro [utente2] -infraction (opzionale, da usare solo in caso di vittoria per inattività)',
+	accepted_roles: ['moderatori', 'testmod', 'admin'],
+	usage: '[utente1] vince contro [utente2] -infraction (*-infraction* è opzionale e da usare solo in caso di vittoria per inattività).',
 	execute(message, args) {
-
 		// synchronusly retrieve the tourHistory array from the info file
 		const tourHistory = JSON.parse(fs.readFileSync(__dirname + '/data/info.json', 'utf8')).tourHistory;
 
 		// array containing the mentioned users
 		let mentionedMembers = [];
-
+		const infraction = message.content.includes('-infraction');
 		// checks if there are exactly two users mentioned, if not return a syntax error
-		if(message.mentions.members.size !== 2) {
+		if(message.mentions.members.size !== 2 && !(message.mentions.members.size === 1 && infraction)) {
 			message.channel.send('Sintassi invalida, prova così: \n' + prefix + this.name + ' ' + this.usage);
 			return null;
 		}
 		else {
 			// gets the id from argument
-			mentionedMembers = args.map(curString => {
+			mentionedMembers = args.filter(curString => curString.search(/\d+>/) > 1).map(curString => {
 				curString = curString.trim();
-				if(curString.search(/<@\d+>/) === 0) {
-					return curString.substring(2, curString.lastIndexOf('>'));
-				}
-			}).filter(curMember => curMember !== undefined);
+				curString = curString.substring(curString.search(/\d+>/), curString.length);
+				curString = curString.replace(/>.+/g, '');
+				curString = curString.replace('>', '');
+				return curString;
+			});
 		}
+		let [winnerId, loserId] = [null, null];
 
-		const infraction = message.content.includes('-infraction');
-
-		const [winnerId, loserId] = mentionedMembers;
 		// asynchronusly gets the usersDatabase
 		fs.readFile(__dirname + '/data/users.json', 'utf8', (err, jsonString) => {
 			if (err) {
@@ -102,26 +100,41 @@ module.exports = {
 				}
 			});
 
-			// checks if infraction is true
-			if(infraction) {
-				usersDatabase[loserId].infractions += 1;
+			// caso in cui l'utente non è più sul server
+			if(infraction && mentionedMembers.length === 1) {
+				winnerId = mentionedMembers[0];
+				// call the function used to calc the new rating
+				// gives half the points
+				let [winnerRatingFinal, loserRatingFinal] = calcNewRating(usersDatabase[winnerId].rating, usersDatabase[winnerId].rating);
+				const winnerDelta = Math.round((winnerRatingFinal - usersDatabase[winnerId].rating) / 2);
+				usersDatabase[winnerId].rating = usersDatabase[winnerId].rating + winnerDelta;
+				message.channel.send('Punteggio di <@' + winnerId + '> aggiornato: ' + usersDatabase[winnerId].rating + ' *(+' + winnerDelta + ')*');
+			}
+			// caso in cui entrambi gli utenti sono sul server
+			if(mentionedMembers.length === 2) {
+				[winnerId, loserId] = mentionedMembers;
+				const [winnerRatingBefore, loserRatingBefore] = [usersDatabase[winnerId].rating, usersDatabase[loserId].rating];
+				// call the function used to calc the new rating
+				const [winnerRatingFinal, loserRatingFinal] = calcNewRating(winnerRatingBefore, loserRatingBefore);
+				usersDatabase[winnerId].rating = winnerRatingFinal;
+				usersDatabase[loserId].rating = loserRatingFinal;
+				// checks if infraction is true
+				if(infraction && mentionedMembers.length > 1) {
+					usersDatabase[loserId].infractions += 1;
+				}
+				const winnerDelta = winnerRatingFinal - winnerRatingBefore;
+				const loserDelta = loserRatingBefore - loserRatingFinal;
+				message.channel.send('Punteggi aggiornati: <@' + winnerId + '>: ' + winnerRatingFinal + ' *(+' + winnerDelta + ')* ' + ' <@' + loserId + '>: ' + loserRatingFinal + ' *(-' + loserDelta + ')*' + (infraction ? ' (infrazione)' : ''));
 			}
 
-			const [winnerRatingBefore, loserRatingBefore] = [usersDatabase[winnerId].rating, usersDatabase[loserId].rating];
-			// call the function used to calc the new rating
-			const [winnerRatingFinal, loserRatingFinal] = calcNewRating(winnerRatingBefore, loserRatingBefore);
-			usersDatabase[winnerId].rating = winnerRatingFinal;
-			usersDatabase[loserId].rating = loserRatingFinal;
 			// update the users file
 			fs.writeFile(__dirname + '/data/users.json', JSON.stringify(usersDatabase), err => {
 				if (err) {
 					message.reply('Si è verificato un errore (002)');
 					throw err;
 				}
-				else {
-					const winnerDelta = winnerRatingFinal - winnerRatingBefore;
-					const loserDelta = loserRatingBefore - loserRatingFinal;
-					message.channel.send('Punteggi aggiornati: <@' + winnerId + '>: ' + winnerRatingFinal + ' *(+' + winnerDelta + ')* ' + ' <@' + loserId + '>: ' + loserRatingFinal + ' *(-' + loserDelta + ')*' + (infraction ? ' (infrazione)' : ''));
+				else if(infraction) {
+					message.channel.send('Vinci a tavolino ciaoo');
 				}
 			});
 		});
